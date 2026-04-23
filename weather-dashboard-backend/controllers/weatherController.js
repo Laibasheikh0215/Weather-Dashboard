@@ -7,7 +7,8 @@ exports.getCurrentWeather = async (req, res) => {
     const data = await fetchWeather(city);
     res.json(data);
   } catch (err) {
-    res.status(500).json({ message: 'Weather API error' });
+    console.error('Weather API error:', err.message);
+    res.status(500).json({ message: err.message || 'Weather service error' });
   }
 };
 
@@ -18,6 +19,7 @@ exports.getForecast = async (req, res) => {
     const data = await fetchForecast(lat, lon);
     res.json(data);
   } catch (err) {
-    res.status(500).json({ message: 'Forecast API error' });
+    console.error('Forecast API error:', err.message);
+    res.status(500).json({ message: err.message || 'Forecast service error' });
   }
 };

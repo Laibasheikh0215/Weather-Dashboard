@@ -5,6 +5,7 @@ const generateToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 
+// ✅ Note: exports.register and exports.login, NOT module.exports = { ... }
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -16,6 +17,7 @@ exports.register = async (req, res) => {
     const token = generateToken(user._id);
     res.status(201).json({ token, user: { id: user._id, name, email } });
   } catch (err) {
+    console.error('Registration error:', err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -32,6 +34,7 @@ exports.login = async (req, res) => {
     const token = generateToken(user._id);
     res.json({ token, user: { id: user._id, name: user.name, email } });
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ message: err.message });
   }
 };
