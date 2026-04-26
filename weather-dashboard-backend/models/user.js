@@ -8,10 +8,10 @@ const UserSchema = new mongoose.Schema({
   preferences: {
     theme: { type: String, default: 'dark' },
     units: { type: String, default: 'metric' }
-  }
+  },
+  emailAlertsEnabled: { type: Boolean, default: true }   // ← Add this line
 });
-
-// ✅ Correct pre-save hook (no 'next' parameter)
+//  Correct pre-save hook (no 'next' parameter)
 UserSchema.pre('save', async function() {
   if (!this.isModified('password')) return;
   this.password = await bcrypt.hash(this.password, 10);

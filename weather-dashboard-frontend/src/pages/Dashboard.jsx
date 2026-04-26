@@ -1,3 +1,4 @@
+import { useState } from 'react'; 
 import { useWeather } from '../context/WeatherContext';
 import { useAuth } from '../context/AuthContext';
 import WeatherCard from '../components/WeatherCard';
@@ -6,13 +7,15 @@ import SearchBar from '../components/SearchBar';
 import MapView from '../components/MapView';
 import SavedLocations from '../components/SavedLocations';
 import ThemeToggle from '../components/ThemeToggle';
-import { LogOut } from 'lucide-react';
+import { LogOut, Bell, BellOff } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
 const Dashboard = () => {
   const { currentWeather, forecast, fetchWeather, loading, error } = useWeather();
   const { logout } = useAuth();
+
+  const [alertsEnabled, setAlertsEnabled] = useState(true);
 
   const handleMapSelect = async (latlng) => {
     try {
@@ -36,6 +39,23 @@ const Dashboard = () => {
     toast.success('Location saved');
   };
 
+const toggleAlerts = async () => {
+    const newState = !alertsEnabled;
+    try {
+      const res = await api.put('/users/alerts', { enabled: newState });
+      if (res.data.success) {
+        setAlertsEnabled(newState);
+        toast.success(`Email alerts ${newState ? 'enabled' : 'disabled'}`);
+      } else {
+        toast.error('Failed to update preference');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Error updating alert preference');
+    }
+  };
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white">
       <div className="max-w-6xl mx-auto p-6">
@@ -45,6 +65,13 @@ const Dashboard = () => {
           </h1>
           <div className="flex gap-3">
             <ThemeToggle />
+            <button
+              onClick={toggleAlerts}
+              className="p-2 rounded-full glass hover:bg-white/20 transition"
+              title={alertsEnabled ? 'Disable email alerts' : 'Enable email alerts'}
+            >
+              {alertsEnabled ? <Bell size={20} /> : <BellOff size={20} />}
+            </button>
             <button onClick={logout} className="p-2 rounded-full glass">
               <LogOut size={20} />
             </button>
