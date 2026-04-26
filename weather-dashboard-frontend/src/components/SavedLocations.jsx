@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Star, Trash2, Cloud, Loader } from 'lucide-react';
+import { Trash2, Loader, Cloud } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useWeather } from '../context/WeatherContext';
 
 const SavedLocations = ({ onSelect }) => {
   const { user } = useAuth();
+  const { getDisplayTemp, unit } = useWeather();
   const [locations, setLocations] = useState([]);
-  const [icons, setIcons] = useState({});
-  const [loadingIcons, setLoadingIcons] = useState({});
+  const [weatherData, setWeatherData] = useState({});
+  const [loading, setLoading] = useState({});
 
   useEffect(() => {
     if (user) fetchLocations();
@@ -18,31 +20,31 @@ const SavedLocations = ({ onSelect }) => {
     try {
       const { data } = await api.get('/locations');
       setLocations(data);
-      // Fetch icons for each location
-      for (const loc of data) {
-        await fetchIcon(loc);
-      }
+      data.forEach(loc => fetchWeatherForLocation(loc));
     } catch (err) {
-      console.error('Fetch locations error:', err);
-      toast.error('Could not load saved locations');
+      console.error('Failed to fetch locations', err);
     }
   };
 
-  const fetchIcon = async (loc) => {
-    setLoadingIcons(prev => ({ ...prev, [loc._id]: true }));
+  const fetchWeatherForLocation = async (loc) => {
+    setLoading(prev => ({ ...prev, [loc._id]: true }));
     try {
       const res = await api.get(`/weather/current?city=${encodeURIComponent(loc.cityName)}`);
-      if (res.data && res.data.weather && res.data.weather[0]) {
-        const iconCode = res.data.weather[0].icon;
-        setIcons(prev => ({ ...prev, [loc._id]: iconCode }));
-        console.log(`Icon for ${loc.cityName}: ${iconCode}`); // Debug log
-      } else {
-        console.warn(`No weather data for ${loc.cityName}`);
+      if (res.data) {
+        setWeatherData(prev => ({
+          ...prev,
+          [loc._id]: {
+            temp: res.data.main.temp,
+            temp_min: res.data.main.temp_min,
+            temp_max: res.data.main.temp_max,
+            icon: res.data.weather[0].icon,
+          },
+        }));
       }
     } catch (err) {
-      console.error(`Failed to fetch icon for ${loc.cityName}:`, err.response?.status, err.message);
+      console.error(`Failed to fetch weather for ${loc.cityName}`, err);
     } finally {
-      setLoadingIcons(prev => ({ ...prev, [loc._id]: false }));
+      setLoading(prev => ({ ...prev, [loc._id]: false }));
     }
   };
 
@@ -56,45 +58,62 @@ const SavedLocations = ({ onSelect }) => {
     }
   };
 
+  const getIconUrl = (iconCode) => `https://openweathermap.org/img/wn/${iconCode}.png`;
+
   return (
-    <div className="glass p-4 mt-6">
-      <h3 className="text-xl font-semibold flex items-center gap-2">
-        <Star size={18} /> Saved Locations
+    <div>
+      <h3 className="text-xl font-semibold flex items-center gap-2 mb-4">
+        <span>Other Cities</span>
       </h3>
       {locations.length === 0 && (
-        <p className="text-gray-400 mt-2">No saved locations yet.</p>
+        <p className="text-gray-400 text-center">No saved locations yet.</p>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-        {locations.map((loc) => (
-          <div
-            key={loc._id}
-            className="flex justify-between items-center bg-white/5 p-2 rounded-lg hover:bg-white/10"
-          >
-            <button
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-3">
+        {locations.map(loc => {
+          const data = weatherData[loc._id];
+          const isLoading = loading[loc._id];
+          return (
+            <div
+              key={loc._id}
+              className="bg-white/10 backdrop-blur-md rounded-xl p-3 relative hover:bg-white/20 transition cursor-pointer group"
               onClick={() => onSelect(loc.cityName)}
-              className="flex items-center gap-2 hover:underline flex-1 text-left"
             >
-              {loadingIcons[loc._id] ? (
-                <Loader size={16} className="animate-spin text-white" />
-              ) : icons[loc._id] ? (
-                <img
-                  src={`https://openweathermap.org/img/wn/${icons[loc._id]}.png`}
-                  alt="weather"
-                  className="w-6 h-6"
-                />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteLocation(loc._id);
+                }}
+                className="absolute top-2 right-2 text-red-400 opacity-0 group-hover:opacity-100 transition"
+              >
+                <Trash2 size={14} />
+              </button>
+              {isLoading ? (
+                <div className="flex justify-center py-4">
+                  <Loader size={20} className="animate-spin" />
+                </div>
+              ) : data ? (
+                <>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-semibold text-lg">{loc.customName || loc.cityName}</p>
+                      <img src={getIconUrl(data.icon)} alt="weather" className="w-8 h-8 -mt-1" />
+                    </div>
+                    <p className="text-2xl font-bold">
+                      {Math.round(getDisplayTemp(data.temp))}°{unit}
+                    </p>
+                  </div>
+                  <div className="text-xs text-gray-300 mt-2">
+                    H: {Math.round(getDisplayTemp(data.temp_max))}° L: {Math.round(getDisplayTemp(data.temp_min))}°
+                  </div>
+                </>
               ) : (
-                <Cloud size={16} className="text-gray-400" />
+                <div className="flex justify-center py-4">
+                  <Cloud size={20} />
+                </div>
               )}
-              <span>{loc.customName || loc.cityName}</span>
-            </button>
-            <button
-              onClick={() => deleteLocation(loc._id)}
-              className="text-red-400 hover:text-red-300 p-1"
-            >
-              <Trash2 size={16} />
-            </button>
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

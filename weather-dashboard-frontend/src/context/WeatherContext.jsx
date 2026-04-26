@@ -5,11 +5,18 @@ const WeatherContext = createContext();
 
 export const useWeather = () => useContext(WeatherContext);
 
+// temperature conversion helpers
+const convertTemp = (temp, unit) => {
+  if (unit === 'F') return (temp * 9/5) + 32;
+  return temp;
+};
+
 export const WeatherProvider = ({ children }) => {
   const [currentWeather, setCurrentWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [unit, setUnit] = useState('C'); // 'C' or 'F'
 
   const fetchWeather = async (city) => {
     setLoading(true);
@@ -26,8 +33,23 @@ export const WeatherProvider = ({ children }) => {
     }
   };
 
+  // helper for components to get displayed temperature
+  const getDisplayTemp = (tempKelvin) => {
+    const celsius = tempKelvin; // API returns Celsius already (units=metric)
+    return unit === 'F' ? celsius * 9/5 + 32 : celsius;
+  };
+
   return (
-    <WeatherContext.Provider value={{ currentWeather, forecast, loading, error, fetchWeather }}>
+    <WeatherContext.Provider value={{
+      currentWeather,
+      forecast,
+      loading,
+      error,
+      fetchWeather,
+      unit,
+      setUnit,
+      getDisplayTemp
+    }}>
       {children}
     </WeatherContext.Provider>
   );
