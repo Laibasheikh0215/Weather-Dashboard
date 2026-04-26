@@ -1,6 +1,6 @@
 # ☁️ Weather Dashboard – MERN Stack with Email Alerts
 
-A full‑stack weather application that provides real‑time weather data, 5‑day forecasts, interactive maps, voice search, and automatic email alerts for extreme weather conditions. Built with the **MERN stack** (MongoDB, Express, React, Node.js) and enhanced with **3D animations** (Three.js) and a **glass‑morphism UI**.
+A full‑stack weather application that provides real‑time weather data, 5‑day forecasts, interactive maps, voice search, and automatic email alerts for extreme weather conditions. Built with the **MERN stack** (MongoDB, Express, React, Node.js) and enhanced with **glass‑morphism UI**.
 
 ![Dashboard Preview](./screenshot.png)
 
