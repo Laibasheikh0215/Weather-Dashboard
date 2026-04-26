@@ -52,30 +52,52 @@ weather-dashboard/
 ## 📦 Installation
 
 ### 1. Clone the repository
+
 git clone https://github.com/Laibasheikh0215/Weather-Dashboard.git
+
 cd Weather-Dashboard
 
-🙏 Acknowledgements
+## 🙏 Acknowledgements
+
 OpenWeatherMap for weather data.
+
 Leaflet for interactive maps.
+
 Lucide for icons.
 
-🗺️ API & External Services
+## 🗺️ API & External Services
+
 OpenWeatherMap – free tier provides 60 calls/min. Get your API key at OpenWeatherMap.
+
 OpenStreetMap (Nominatim) – used for reverse geocoding on the map.
+
 Gmail SMTP – requires an App Password (2‑step verification ON). Generate at Google App Passwords.
 
-📧 Email Alerts (How they work)
+
+## 📧 Email Alerts (How they work)
+
 Backend scheduler (node‑cron) runs every 3 hours (customisable in scheduler.js).
+
 For each saved location of every user, current weather is fetched.
+
 If any threshold is exceeded (e.g., rain, extreme heat/cold, high wind), an email is sent only to that user.
+
 Users can disable alerts from the dashboard (bell icon toggle).
+
 https://./email-alert.png
+
+
 Thresholds (adjustable in weatherAlertService.js)
+
 temp: { min: -5, max: 40 },   // alert when below -5°C or above 40°C
+
 wind: 15,                     // wind speed > 15 m/s
+
 rain: 'Rain',
+
 storm: 'Thunderstorm'
+
 ```bash
+
 git clone https://github.com/Laibasheikh0215/Weather-Dashboard.git
 cd Weather-Dashboard
